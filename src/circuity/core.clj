@@ -10,10 +10,15 @@
 (defn open?
   "Detect if given circuit state open *now*."
   [{:keys [failure_count trip_threshold
-           last_failure reset_window] :as state}]
+           last_failure reset_window]
+    :or {failure_count 0 last_failure 0}}]
   (and (>= failure_count trip_threshold)
        (<= (- (System/currentTimeMillis) last_failure)
            reset_window)))
+
+(defn reset-circuit
+  [circuit]
+  (assoc circuit :failure_count 0))
 
 (defn record-fail
   "Record a failure in circuit state."
@@ -30,12 +35,14 @@
                      head
                      (recur tail)))
         timeout (get attr-map :timeout 5000)
-        trip-threshold (get attr-map :trip_threshold 5)]
+        trip-threshold (get attr-map :trip_threshold 5)
+        reset-window (get attr-map :reset_window (* 10 timeout))]
     `(do
        (let [circuit# (atom {:timeout ~timeout
                              :trip_threshold ~trip-threshold
                              :failure_count 0
-                             :last_failure 0})]
+                             :last_failure 0
+                             :reset_window ~reset-window})]
          (defn ~fname ~@pre-args ~args
            (let [f# (fn [] ~@body)]
              (if-not (open? @circuit#)
@@ -45,6 +52,7 @@
                    (catch Exception ex#
                      (swap! circuit# record-fail)
                      (throw ex#))))
-               (throw (ex-info "Circuit open as it fails too often")))))
+               (throw (ex-info "Circuit open as it fails too often"
+                               @circuit#)))))
          (alter-meta! (var ~fname) assoc :circuit circuit#)))))
 
