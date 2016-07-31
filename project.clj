@@ -1,6 +1,6 @@
 (defproject circuity "0.1.0-SNAPSHOT"
-  :description "A circuit breaker in clojure"
-  :url "http://example.com/FIXME"
+  :description "A minimal Circuit Breaker in Clojure"
+  :url "https://github.com/juvenn/circuity"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]])
