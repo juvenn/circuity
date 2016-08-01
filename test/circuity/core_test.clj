@@ -22,7 +22,7 @@
                            :reset_window 5000})))))
 
 (cc/defcommand sleep
-  "Sleep for some time"
+  "Sleep for some time and returns ms it has slept"
   {:timeout 300
    :trip_threshold 2
    :reset_window 3000}
@@ -30,12 +30,3 @@
   (Thread/sleep ms)
   ms)
 
-(deftest test-defcommand
-  (testing "it trips circuit"
-    (try
-      (sleep 310)
-      (sleep 310)
-      (sleep 310)
-      (sleep 310)
-      (catch java.util.concurrent.TimeoutException ex
-        nil))))

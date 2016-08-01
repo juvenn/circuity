@@ -6,7 +6,7 @@ to half open circuit.
 
 ## Todo
 
-* Reset circuit when operation succeeds
+* Throw explicit exceptions?
 * Fallback fn when circuit open
 
 ## Usage
