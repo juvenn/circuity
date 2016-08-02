@@ -21,12 +21,48 @@
                            :failure_count 5
                            :reset_window 5000})))))
 
-(cc/defcommand sleep
-  "Sleep for some time and returns ms it has slept"
-  {:timeout 300
-   :trip_threshold 2
-   :reset_window 3000}
-  [ms]
-  (Thread/sleep ms)
-  ms)
+(cc/defcommand plus
+  [a b]
+  (+ a b))
+
+(deftest test-plus-functional
+  (is (= 42 (plus 1 41))))
+
+(cc/defcommand sieve-of-primes
+  "Prime numbers less than n"
+  {:timeout 100 :trip_threshold 2}
+  [n]
+  (if (<= n 2)
+    []
+    (let [m (Math/round (Math/sqrt n))]
+      (loop [primes []
+             [x & numbers] (range 2 n)]
+        (cond
+          (nil? x) primes
+          (> x m) (concat primes [x] numbers)
+          :else
+          (recur (conj primes x) (remove #(= 0 (mod % x)) numbers)))))))
+
+(deftest test-sieve-of-primes
+  (testing "it find prime numbers"
+    (is (= [] (sieve-of-primes 1)))
+    (is (= [] (sieve-of-primes 2)))
+    (is (= [2] (sieve-of-primes 3)))
+    (is (= [2 3] (sieve-of-primes 4)))
+    (is (= [2 3 5 7 11] (sieve-of-primes 12))))
+  (testing "it timeout on big numbers"
+    (try
+      (sieve-of-primes Long/MAX_VALUE)
+      (catch Exception ex
+        (is (= :Timeout (:cause (ex-data ex)))))))
+  (testing "it trips circuit after reach trip threshold"
+    (try
+      (sieve-of-primes Long/MAX_VALUE)
+      (catch Exception ex
+        (is (= :Timeout (:cause (ex-data ex))))))
+    (try
+      (sieve-of-primes Long/MAX_VALUE)
+      (catch Exception ex
+        (is (= :CircuitOpen (:cause (ex-data ex))))))))
+
 
