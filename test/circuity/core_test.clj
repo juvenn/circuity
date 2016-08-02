@@ -63,6 +63,10 @@
     (try
       (sieve-of-primes Long/MAX_VALUE)
       (catch Exception ex
+        (is (= :CircuitOpen (:cause (ex-data ex))))))
+    (try
+      (sieve-of-primes 12)
+      (catch Exception ex
         (is (= :CircuitOpen (:cause (ex-data ex))))))))
 
 
