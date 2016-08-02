@@ -22,10 +22,8 @@
       (assoc :last_failure (System/currentTimeMillis))))
 
 (defmacro defcommand
-  "
-  Same as defn but define a function guarded by circuit breaker. It
-  supports optional doc-string, and optional attr-map to customize
-  circuit behavior such as:
+  "Same as defn but define a function guarded by circuit breaker.
+  Example:
 
   ```
   (defcommand sleep
@@ -36,11 +34,10 @@
     ms)
   ```
 
-  Invocations on command will be short-circuited (circuit open) if
-  failed more than 5 times in the window of 3000 ms, i.e. the command
-  will not be executed at all, and exception being thrown right
-  away. Until reset window passed, then command will be executed on
-  invocation.
+  Doc-string is optional. The :timeout, :trip_threshold, :reset_window
+  provided in the map will define when circuit timeout, trip, and
+  reset, respectively. If not present, default value will be assumed:
+  `{:timeout 5000 :trip_threshold 5 :reset_window (* 10 timeout)}`
   "
   [fname & fdecl]
   (let [[pre-args [args & body]] (split-with (comp not vector?) fdecl)
@@ -69,13 +66,14 @@
                      val#)
                    (do
                      (swap! circuit# record-failure)
-                     (throw (ex-info (format "%s failed (timedout) in %s (ms)"
+                     (throw (ex-info (format "%s failed (timed out) in %s (ms)"
                                              (var ~fname) ~timeout)
-                                     {:cause :TimeOut
-                                      :circuit @circuit#})))))
-               (throw (ex-info (format "%s short-circuited as it failed too often"
-                                       (var ~fname))
+                                     {:cause :Timeout
+                                      :timeout ~timeout})))))
+               (throw (ex-info (format "%s short-circuited in a time window of %s (ms)"
+                                       (var ~fname) ~reset-window)
                                {:cause :CircuitOpen
-                                :circuit @circuit#})))))
+                                :trip_threshold ~trip-threshold
+                                :reset_window ~reset-window})))))
          (alter-meta! (var ~fname) assoc :circuit circuit#)))))
 
