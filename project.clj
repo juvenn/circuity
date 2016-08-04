@@ -1,4 +1,4 @@
-(defproject circuity "0.1.0-SNAPSHOT"
+(defproject circuity/circuity "0.1.0"
   :description "A minimal Circuit Breaker in Clojure"
   :url "https://github.com/juvenn/circuity"
   :license {:name "Eclipse Public License"
