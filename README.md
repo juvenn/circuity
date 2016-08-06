@@ -18,7 +18,7 @@ Install
 Add this dependency to `project.clj`:
 
 ```clj
-[circuity/circuity "0.1.0"]
+[circuity/circuity "0.1.1"]
 ```
 
 Usage
